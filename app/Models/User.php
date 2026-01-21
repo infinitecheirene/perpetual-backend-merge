@@ -6,10 +6,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-<<<<<<< HEAD
-use Illuminate\Database\Eloquent\Relations\HasOne;
-=======
->>>>>>> b6db75c0efd4d913bf471492ff3bfb841d2b9966
 
 class User extends Authenticatable
 {
@@ -25,11 +21,7 @@ class User extends Authenticatable
         'fraternity_number',
         'status',
         'role',
-<<<<<<< HEAD
-        'rejection_reason',
-=======
         'rejection_reason', 
->>>>>>> b6db75c0efd4d913bf471492ff3bfb841d2b9966
     ];
 
     protected $hidden = [
@@ -64,15 +56,9 @@ class User extends Authenticatable
         return $this->role === 'admin';
     }
 
-<<<<<<< HEAD
-    public function isUser(): bool
-    {
-        return $this->role === 'user';
-=======
     public function isMember(): bool
     {
         return $this->role === 'member';
->>>>>>> b6db75c0efd4d913bf471492ff3bfb841d2b9966
     }
 
     // Status check methods
@@ -122,11 +108,4 @@ class User extends Authenticatable
     {
         return $query->where('role', 'admin');
     }
-<<<<<<< HEAD
-    public function juantapProfile()
-    {
-        return $this->hasOne(\App\Models\JuanTapProfile::class);
-    }
-=======
->>>>>>> b6db75c0efd4d913bf471492ff3bfb841d2b9966
 }
