@@ -13,7 +13,21 @@ class UserController extends Controller
     public function index(Request $request)
     {
         try {
+<<<<<<< HEAD
             $query = User::members()->select([
+=======
+            $authUser = auth()->user();
+
+            // ✅ Admin-only access
+            if (! $authUser || $authUser->role !== 'admin') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized',
+                ], 403);
+            }
+
+            $query = User::query()->select([
+>>>>>>> b6db75c0efd4d913bf471492ff3bfb841d2b9966
                 'id',
                 'name',
                 'email',
@@ -26,6 +40,7 @@ class UserController extends Controller
                 'rejection_reason',
                 'created_at',
                 'updated_at',
+<<<<<<< HEAD
                 'email_verified_at'
             ]);
 
@@ -36,12 +51,30 @@ class UserController extends Controller
 
             // Search by name, email, or phone
             if ($request->has('search') && !empty($request->search)) {
+=======
+                'email_verified_at',
+            ]);
+
+            // Filter by status
+            if ($request->filled('status') && $request->status !== 'all') {
+                $query->where('status', $request->status);
+            }
+
+            // Search
+            if ($request->filled('search')) {
+>>>>>>> b6db75c0efd4d913bf471492ff3bfb841d2b9966
                 $search = $request->search;
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
                         ->orWhere('email', 'like', "%{$search}%")
                         ->orWhere('phone_number', 'like', "%{$search}%")
+<<<<<<< HEAD
                         ->orWhere('address', 'like', "%{$search}%");
+=======
+                        ->orWhere('address', 'like', "%{$search}%")
+                        ->orWhere('school_registration_number', 'like', "%{$search}%")
+                        ->orWhere('fraternity_number', 'like', "%{$search}%");
+>>>>>>> b6db75c0efd4d913bf471492ff3bfb841d2b9966
                 });
             }
 
@@ -50,6 +83,7 @@ class UserController extends Controller
 
             return response()->json([
                 'success' => true,
+<<<<<<< HEAD
                 'data' => $users
             ]);
 
@@ -57,12 +91,23 @@ class UserController extends Controller
             Log::error('Error fetching users', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
+=======
+                'data' => $users,
+            ]);
+
+        } catch (\Throwable $e) {
+            Log::error('Error fetching users', [
+                'error' => $e->getMessage(),
+>>>>>>> b6db75c0efd4d913bf471492ff3bfb841d2b9966
             ]);
 
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch users',
+<<<<<<< HEAD
                 'error' => $e->getMessage()
+=======
+>>>>>>> b6db75c0efd4d913bf471492ff3bfb841d2b9966
             ], 500);
         }
     }
@@ -70,7 +115,11 @@ class UserController extends Controller
     public function show($id)
     {
         try {
+<<<<<<< HEAD
             $user = User::members()
+=======
+            $user = User::users()
+>>>>>>> b6db75c0efd4d913bf471492ff3bfb841d2b9966
                 ->select([
                     'id',
                     'name',
@@ -84,6 +133,7 @@ class UserController extends Controller
                     'rejection_reason',
                     'created_at',
                     'updated_at',
+<<<<<<< HEAD
                     'email_verified_at'
                 ])
                 ->find($id);
@@ -92,30 +142,53 @@ class UserController extends Controller
                 return response()->json([
                     'success' => false,
                     'message' => 'User not found'
+=======
+                    'email_verified_at',
+                ])
+                ->find($id);
+
+            if (! $user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User not found',
+>>>>>>> b6db75c0efd4d913bf471492ff3bfb841d2b9966
                 ], 404);
             }
 
             return response()->json([
                 'success' => true,
+<<<<<<< HEAD
                 'data' => $user
+=======
+                'data' => $user,
+>>>>>>> b6db75c0efd4d913bf471492ff3bfb841d2b9966
             ]);
 
         } catch (\Exception $e) {
             Log::error('Error fetching user', [
                 'user_id' => $id,
+<<<<<<< HEAD
                 'error' => $e->getMessage()
+=======
+                'error' => $e->getMessage(),
+>>>>>>> b6db75c0efd4d913bf471492ff3bfb841d2b9966
             ]);
 
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch user',
+<<<<<<< HEAD
                 'error' => $e->getMessage()
+=======
+                'error' => $e->getMessage(),
+>>>>>>> b6db75c0efd4d913bf471492ff3bfb841d2b9966
             ], 500);
         }
     }
 
     public function updateStatus(Request $request, $id)
     {
+<<<<<<< HEAD
         $validator = Validator::make($request->all(), [
             'status' => 'required|string|in:pending,approved,rejected,deactivated',
             'rejection_reason' => 'required_if:status,rejected,deactivated|string|nullable',
@@ -189,6 +262,45 @@ class UserController extends Controller
                 'approved' => User::members()->approved()->count(),
                 'rejected' => User::members()->where('status', 'rejected')->count(),
                 'deactivated' => User::members()->deactivated()->count(),
+=======
+        $validated = $request->validate([
+            'status' => 'required|in:pending,approved,rejected,deactivated',
+            'rejection_reason' => 'nullable|required_if:status,rejected,deactivated|string',
+        ]);
+
+        $user = User::find($id);
+
+        if (! $user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not found',
+            ], 404);
+        }
+
+        $user->update([
+            'status' => $validated['status'],
+            'rejection_reason' => in_array($validated['status'], ['rejected', 'deactivated'])
+                ? $validated['rejection_reason']
+                : null,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'User status updated successfully',
+            'data' => $user->fresh(),
+        ]);
+    }
+
+    public function statistics()
+    {
+        try {
+            $stats = [
+                'total' => User::users()->count(),
+                'pending' => User::users()->pending()->count(),
+                'approved' => User::users()->approved()->count(),
+                'rejected' => User::users()->where('status', 'rejected')->count(),
+                'deactivated' => User::users()->deactivated()->count(),
+>>>>>>> b6db75c0efd4d913bf471492ff3bfb841d2b9966
             ];
 
             return response()->json([
@@ -198,14 +310,26 @@ class UserController extends Controller
 
         } catch (\Exception $e) {
             Log::error('Error fetching user statistics', [
+<<<<<<< HEAD
                 'error' => $e->getMessage()
+=======
+                'error' => $e->getMessage(),
+>>>>>>> b6db75c0efd4d913bf471492ff3bfb841d2b9966
             ]);
 
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch statistics',
+<<<<<<< HEAD
                 'error' => $e->getMessage()
             ], 500);
         }
     }
 }
+=======
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+}
+>>>>>>> b6db75c0efd4d913bf471492ff3bfb841d2b9966

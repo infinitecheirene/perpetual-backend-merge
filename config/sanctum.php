@@ -15,12 +15,17 @@ return [
     |
     */
 
+<<<<<<< HEAD
     'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', sprintf(
         '%s%s',
         'localhost,localhost:3000,127.0.0.1,127.0.0.1:8000,::1',
         Sanctum::currentApplicationUrlWithPort(),
         // Sanctum::currentRequestHost(),
     ))),
+=======
+   'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', 'localhost,localhost:3000,127.0.0.1,127.0.0.1:8000,::1')),
+
+>>>>>>> b6db75c0efd4d913bf471492ff3bfb841d2b9966
 
     /*
     |--------------------------------------------------------------------------
