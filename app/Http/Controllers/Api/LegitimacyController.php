@@ -13,6 +13,73 @@ use Barryvdh\DomPDF\Facade\Pdf;
 class LegitimacyController extends Controller
 {
     /**
+     * Verify if a user is active using fraternity number
+     */
+    public function verifyActiveUser(Request $request)
+    {
+        // Validate input with custom error messages
+        $validator = Validator::make($request->all(), [
+            'fraternity_number' => 'required|string|exists:users,fraternity_number',
+        ], [
+            'fraternity_number.required' => 'Fraternity number is required.',
+            'fraternity_number.exists'   => 'Fraternity number not found.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors'  => $validator->errors(),
+            ], 422);
+        }
+
+        // Find user safely
+        $user = \App\Models\User::where('fraternity_number', $request->fraternity_number)
+            ->select('id', 'name', 'email', 'fraternity_number')
+            ->first();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not found.',
+            ], 404);
+        }
+
+        // Check approved legitimacy
+        $legitimacy = LegitimacyRequest::where('user_id', $user->id)
+            ->where('status', 'approved')
+            ->latest('approved_at')
+            ->first();
+
+        if (!$legitimacy) {
+            return response()->json([
+                'success' => true,
+                'active'  => false,
+                'message' => 'User is not active. No approved legitimacy found.',
+                'data'    => [
+                    'name'              => $user->name,
+                    'email'             => $user->email,
+                    'fraternity_number' => $user->fraternity_number,
+                ],
+            ], 200);
+        }
+
+        return response()->json([
+            'success' => true,
+            'active'  => true,
+            'data'    => [
+                'name'              => $user->name,
+                'email'             => $user->email,
+                'fraternity_number' => $user->fraternity_number,
+                'alias'             => $legitimacy->alias,
+                'position'          => $legitimacy->position,
+                'chapter'           => $legitimacy->chapter,
+                'approved_at'       => $legitimacy->approved_at,
+            ],
+        ], 200);
+    }
+
+    /**
      * List legitimacy requests for the authenticated user
      */
     public function userIndex(Request $request)
@@ -575,7 +642,6 @@ class LegitimacyController extends Controller
             $filename = 'certificate-' . str_replace(' ', '-', strtolower($legitimacy->alias)) . '-' . now()->format('Y-m-d') . '.pdf';
 
             return $pdf->download($filename);
-
         } catch (\Exception $e) {
             Log::error('Error generating legitimacy certificate PDF', [
                 'legitimacy_id' => $id,

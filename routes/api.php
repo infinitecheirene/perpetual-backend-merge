@@ -240,6 +240,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
 //     Route::get('/admin/barangay-blotters', [BarangayBlotterController::class, 'adminIndex']);
 // });
 
+// public route for legit check verification
+Route::post('legitimacy/verify', [LegitimacyController::class, 'verifyActiveUser']);
+
 Route::middleware('auth:sanctum')->group(function () {
     // member legitimacy request routes
     Route::get('legitimacy', [LegitimacyController::class, 'userIndex']);
@@ -253,10 +256,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('admin/legitimacy/{id}', [LegitimacyController::class, 'adminDestroy']);
 });
 
-Route::middleware('auth:sanctum')->group(function () {
-    // public routes for business partners
-    Route::get('business-partners', [BusinessPartnerController::class, 'index']);
 
+// public routes for business partners
+Route::get('business-partners', [BusinessPartnerController::class, 'index']);
+Route::middleware('auth:sanctum')->group(function () {
     // Member routes for business partners
     Route::get('user/business-partners', [BusinessPartnerController::class, 'userIndex']);
     Route::post('business-partners', [BusinessPartnerController::class, 'store']);
@@ -269,6 +272,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('admin/business-partners/{id}', [BusinessPartnerController::class, 'adminDestroy']);
 });
 
+// public vlogs routes
+Route::get('vlogs', [VlogController::class, 'index']);
+
 Route::middleware(['auth:sanctum'])->group(function () {
     // admin
     Route::get('admin/vlogs', [VlogController::class, 'adminIndex']);
@@ -276,9 +282,5 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::patch('admin/vlogs/{id}', [VlogController::class, 'update']);
     Route::post('admin/vlogs/chunk-upload', [VlogController::class, 'uploadChunk']);
     Route::post('admin/vlogs/{id}/chunk-upload', [VlogController::class, 'uploadChunk']);
-    
+    Route::delete('admin/vlogs/{id}', [VlogController::class, 'destroy']);
 });
-
-// public vlogs routes
-Route::get('vlogs', [VlogController::class, 'index']);
-Route::delete('admin/vlogs/{id}', [VlogController::class, 'destroy']);
